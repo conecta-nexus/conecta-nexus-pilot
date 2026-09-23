@@ -61,6 +61,10 @@ resource "google_compute_instance" "auth_vm" {
   # Script de arranque desatendido que aprovisiona Python, pnpm, systemd
   metadata_startup_script = file("${path.module}/startup.sh")
 
+  metadata = {
+    repo_url = "https://github.com/conecta-nexus/conecta-nexus-pilot.git"
+  }
+
   service_account {
     scopes = ["cloud-platform"]
   }

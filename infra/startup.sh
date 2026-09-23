@@ -32,9 +32,9 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
 
 # 3. Instalación de pnpm (preferido sobre npm)
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] Instalando pnpm..."
-curl -fsSL https://get.pnpm.io/install.sh | env PNPM_HOME="/usr/local/bin" bash -
-export PATH="/usr/local/bin:$PATH"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] Instalando pnpm globalmente..."
+npm install -g pnpm
+export PATH="/usr/local/bin:/usr/bin:$PATH"
 
 echo "Node version: $(node -v)"
 echo "pnpm version: $(pnpm -v)"
@@ -48,11 +48,18 @@ mkdir -p "${APP_DIR}"
 EXTERNAL_IP=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip || echo "127.0.0.1")
 echo "IP Publica detectada: ${EXTERNAL_IP}"
 
-# 6. Clonar o sincronizar repositorio si se define metadata 'repo_url', o preparar estructura
+# 6. Clonar o sincronizar repositorio
 REPO_URL=$(curl -s -f -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/repo_url || true)
+if [ -z "${REPO_URL}" ] || [ "${REPO_URL}" = "null" ]; then
+  REPO_URL="https://github.com/conecta-nexus/conecta-nexus-pilot.git"
+fi
 
-if [ -n "${REPO_URL}" ] && [ "${REPO_URL}" != "null" ]; then
-  echo "Clonando repositorio desde ${REPO_URL}..."
+echo "Clonando/actualizando repositorio desde ${REPO_URL}..."
+if [ -d "${APP_DIR}/.git" ]; then
+  cd "${APP_DIR}"
+  git fetch origin main
+  git reset --hard origin/main
+else
   rm -rf "${APP_DIR}"
   git clone "${REPO_URL}" "${APP_DIR}"
 fi
