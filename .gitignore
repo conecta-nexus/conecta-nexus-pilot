@@ -1,0 +1,43 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+*.db
+.env
+.venv/
+venv/
+ENV/
+*.log
+
+# Node / Nuxt / pnpm
+node_modules/
+.nuxt/
+.output/
+dist/
+.nitro/
+.cache/
+pnpm-debug.log*
+.npm/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
