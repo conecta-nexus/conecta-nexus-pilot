@@ -26,9 +26,18 @@ apt-get install -y \
   sqlite3 \
   jq
 
-# 2. Instalación de Node.js 20.x LTS
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] Instalando Node.js 20.x..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+# 2. Configurar Swap (2GB) para estabilidad en instancias pequeñas (e2-small)
+if [ ! -f /swapfile ]; then
+  echo "[$(date +'%Y-%m-%d %H:%M:%S')] Configurando 2GB de Swap..."
+  fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile || true
+fi
+
+# 3. Instalación de Node.js 22.x LTS (Requerido por Vite 8 y Set.prototype.difference)
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] Instalando Node.js 22.x LTS..."
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 apt-get install -y nodejs
 
 # 3. Instalación de pnpm (preferido sobre npm)
