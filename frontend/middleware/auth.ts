@@ -1,10 +1,8 @@
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware((to, from) => {
   if (import.meta.server) return
 
-  const { isAuthenticated, initAuth } = useAuth()
-  await initAuth()
-
-  if (!isAuthenticated.value) {
-    return navigateTo('/login')
+  const token = localStorage.getItem('conecta_access_token')
+  if (!token) {
+    return navigateTo('/login', { replace: true })
   }
 })

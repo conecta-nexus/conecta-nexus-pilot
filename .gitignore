@@ -9,6 +9,9 @@ __pycache__/
 venv/
 ENV/
 *.log
+logs/
+*.pid
+.local_services.pid
 
 # Node / Nuxt / pnpm
 node_modules/

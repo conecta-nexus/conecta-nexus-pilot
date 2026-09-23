@@ -1,15 +1,13 @@
 <script setup lang="ts">
-definePageMeta({
-  middleware: [
-    async () => {
-      const { isAuthenticated, initAuth } = useAuth()
-      await initAuth()
-      if (isAuthenticated.value) {
-        return navigateTo('/dashboard')
-      }
-      return navigateTo('/login')
-    }
-  ]
+// Redirection logic to login or dashboard
+onMounted(async () => {
+  const { isAuthenticated, initAuth } = useAuth()
+  await initAuth()
+  if (isAuthenticated.value) {
+    await navigateTo('/dashboard', { replace: true })
+  } else {
+    await navigateTo('/login', { replace: true })
+  }
 })
 </script>
 

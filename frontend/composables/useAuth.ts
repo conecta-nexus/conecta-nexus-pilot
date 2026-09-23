@@ -17,8 +17,6 @@ export interface RegisterPayload {
 
 export const useAuth = () => {
   const config = useRuntimeConfig()
-  const router = useRouter()
-
   const apiBase = config.public.apiBase || 'http://localhost:8000'
 
   const user = useState<UserProfile | null>('auth_user', () => null)
@@ -139,7 +137,7 @@ export const useAuth = () => {
         localStorage.setItem('conecta_user_profile', JSON.stringify(user.value))
       }
 
-      await router.push('/dashboard')
+      await navigateTo('/dashboard')
       return { success: true }
     } catch (err: any) {
       const backendError =
@@ -226,7 +224,7 @@ export const useAuth = () => {
       localStorage.removeItem('conecta_user_profile')
     }
 
-    await router.push('/login')
+    await navigateTo('/login')
   }
 
   return {

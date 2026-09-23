@@ -125,6 +125,20 @@ El backend quedará escuchando en `http://localhost:8000/api/v1/auth/`.
 
 ---
 
+### 4.3 Inicio y Detención Rápida con Scripts Automatizados (`scripts/`)
+
+Para mayor comodidad del evaluador, se incluyen scripts que orquestan ambos servicios en segundo plano:
+
+```bash
+# Iniciar Backend y Frontend localmente con un solo comando:
+./scripts/start_local.sh
+
+# Detener todos los servicios locales y liberar puertos 8000 y 3000:
+./scripts/stop_local.sh
+```
+
+---
+
 ## 5. Endpoints de la API REST (`backend/`)
 
 | Método | Endpoint | Acceso | Descripción |
@@ -138,6 +152,20 @@ El backend quedará escuchando en `http://localhost:8000/api/v1/auth/`.
 ---
 
 ## 6. Despliegue en Google Cloud Platform (GCP) con Terraform
+
+La infraestructura despliega una instancia **Google Compute Engine (`e2-small`)** en la región `us-central1`, asigna una **IP pública estática**, configura el **Firewall** para permitir puertos `22`, `8000` y `3000`, y ejecuta el script `startup.sh` mediante `systemd`.
+
+### Despliegue Automatizado con Scripts (Recomendado para GCP Cloud Shell):
+
+```bash
+# 1. Desplegar la infraestructura (solicita el GCP Project ID o lo detecta de gcloud):
+./scripts/start_cloud.sh [TU_PROJECT_ID]
+
+# 2. Destruir los recursos cuando finalice la sustentación (evita cobros en GCP):
+./scripts/stop_cloud.sh [TU_PROJECT_ID]
+```
+
+### Despliegue Manual con Terraform CLI:
 
 La infraestructura despliega una instancia **Google Compute Engine (`e2-small`)** en la región `us-central1`, asigna una **IP pública estática**, configura el **Firewall** para permitir puertos `22`, `8000` y `3000`, y ejecuta el script `startup.sh` mediante `systemd`.
 
