@@ -19,18 +19,30 @@ export default <Partial<Config>>{
           950: '#370706',
         },
         nexus: {
-          dark: '#0B0F19',
-          card: '#111827',
-          border: '#1F2937',
-          accent: '#3B82F6',
+          bg: '#080F1E',
+          surface: '#0D1B2E',
+          sidebar: '#0A1628',
+          card: '#0F1F36',
+          panel: '#122035',
+          selected: '#1A2E4A',
+          border: '#1E3355',
+          'border-light': '#253D5F',
+          muted: '#4A6B8A',
+          subtext: '#6B8CAE',
+          body: '#7B9CBF',
+          text: '#EEF2FF',
+          blue: '#3B82F6',
+          cyan: '#06B6D4',
+          purple: '#8B5CF6',
         }
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
       },
       boxShadow: {
-        'glow-red': '0 0 25px -5px rgba(170, 25, 22, 0.35)',
-        'glow-blue': '0 0 25px -5px rgba(59, 130, 246, 0.35)',
+        'glow-blue': '0 4px 24px rgba(59, 130, 246, 0.3)',
+        'glow-cyan': '0 4px 24px rgba(6, 182, 212, 0.25)',
+        'glow-card': '0 10px 30px -10px rgba(0, 0, 0, 0.5)',
       }
     }
   }

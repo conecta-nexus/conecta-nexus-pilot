@@ -1,9 +1,30 @@
 <script setup lang="ts">
+import {
+  LayoutDashboard,
+  Search,
+  FileText,
+  Bell,
+  User,
+  LogOut,
+  Briefcase,
+  Users,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
+  Sparkles,
+  ChevronRight,
+  Plus,
+  ArrowRight,
+  ShieldCheck,
+  Building2,
+  GraduationCap
+} from 'lucide-vue-next'
+
 definePageMeta({
   middleware: 'auth'
 })
 
-const { user, logout, fetchMe, isLoading } = useAuth()
+const { user, logout, fetchMe, accessToken, isLoading } = useAuth()
 const isRefreshing = ref(false)
 
 onMounted(async () => {
@@ -12,8 +33,24 @@ onMounted(async () => {
   isRefreshing.value = false
 })
 
+const isStudent = computed(() => {
+  return user.value?.role !== 'EMPRESA'
+})
+
+const userInitials = computed(() => {
+  if (!user.value?.email) return 'CN'
+  const namePart = user.value.email.split('@')[0]
+  return namePart.slice(0, 2).toUpperCase()
+})
+
+const userDisplayName = computed(() => {
+  if (!user.value?.email) return 'Usuario'
+  const prefix = user.value.email.split('@')[0]
+  return prefix.charAt(0).toUpperCase() + prefix.slice(1)
+})
+
 const formatDate = (isoString?: string | null) => {
-  if (!isoString) return 'No registrado'
+  if (!isoString) return 'Registrado en sistema'
   try {
     const date = new Date(isoString)
     return new Intl.DateTimeFormat('es-CO', {
@@ -28,221 +65,443 @@ const formatDate = (isoString?: string | null) => {
 const handleLogout = async () => {
   await logout()
 }
+
+// Student mock data
+const studentStats = [
+  { label: 'Solicitudes enviadas', value: '3', Icon: FileText, color: '#3B82F6' },
+  { label: 'Pendientes de respuesta', value: '1', Icon: Clock, color: '#F59E0B' },
+  { label: 'Aceptadas', value: '1', Icon: CheckCircle2, color: '#10B981' },
+  { label: 'Problemáticas disponibles', value: '18+', Icon: TrendingUp, color: '#8B5CF6' },
+]
+
+// Company mock data
+const companyStats = [
+  { label: 'Problemáticas activas', value: '4', Icon: Briefcase, color: '#3B82F6' },
+  { label: 'Solicitudes recibidas', value: '5', Icon: Users, color: '#8B5CF6' },
+  { label: 'Solicitudes pendientes', value: '2', Icon: Clock, color: '#F59E0B' },
+  { label: 'Problemáticas en proceso', value: '2', Icon: TrendingUp, color: '#10B981' },
+]
+
+const studentFeaturedProblems = [
+  {
+    id: 1,
+    title: 'Optimización de rutas de distribución urbana con IA',
+    company: 'Logística Express S.A.S.',
+    city: 'Cúcuta',
+    status: 'Abierta',
+    area: 'Ingeniería de Sistemas',
+    tags: ['Python', 'Algoritmos Genéticos', 'GIS'],
+  },
+  {
+    id: 2,
+    title: 'Módulo de analítica predictiva de consumo energético',
+    company: 'EnergiCo del Oriente',
+    city: 'Cúcuta',
+    status: 'Abierta',
+    area: 'Ciencia de Datos',
+    tags: ['Machine Learning', 'Vue.js', 'Django'],
+  },
+  {
+    id: 3,
+    title: 'Sistema IoT de monitoreo de temperatura en silos de almacenamiento',
+    company: 'AgroNorte S.A.S.',
+    city: 'Pamplona',
+    status: 'En Proceso',
+    area: 'Ingeniería Electrónica',
+    tags: ['IoT', 'ESP32', 'MQTT'],
+  },
+]
+
+const companyProblemsList = [
+  {
+    id: 1,
+    title: 'Optimización de rutas de distribución urbana con IA',
+    status: 'Abierta',
+    desc: 'Buscamos rediseñar el cálculo de itinerarios en la zona metropolitana de Cúcuta reduciendo tiempos muertos y combustible.',
+    requestsCount: 2,
+  },
+  {
+    id: 2,
+    title: 'Módulo de analítica predictiva de consumo energético',
+    status: 'En Proceso',
+    desc: 'Modelado estadístico y predictivo sobre lecturas históricas de telemetría eléctrica industrial.',
+    requestsCount: 1,
+  },
+  {
+    id: 3,
+    title: 'Automatización de reportes de calidad industrial',
+    status: 'Abierta',
+    desc: 'Pipeline ETL para consolidación de métricas de producción en plantas manufactureras locales.',
+    requestsCount: 0,
+  },
+]
+
+const recentRequests = [
+  {
+    id: 101,
+    problem: 'Optimización de rutas de distribución urbana',
+    company: 'Logística Express S.A.S.',
+    applicant: 'Andrés Quintero (UFPS)',
+    status: 'Pendiente',
+    date: 'Hoy',
+  },
+  {
+    id: 102,
+    problem: 'Módulo de analítica predictiva',
+    company: 'EnergiCo del Oriente',
+    applicant: 'Camila Torres (UFPS)',
+    status: 'Aceptada',
+    date: '22 Sep 2026',
+  },
+]
 </script>
 
 <template>
-  <div class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-    <!-- Top Navigation Bar -->
-    <header class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-800 shadow-xl">
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-ufps-600 to-ufps-800 text-white font-black text-xl flex items-center justify-center shadow-glow-red ring-1 ring-white/20">
-          CN
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg font-bold text-white tracking-tight">Conecta Nexus</h1>
-            <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-ufps-600/20 text-ufps-400 border border-ufps-600/40">
-              Piloto UFPS
-            </span>
-          </div>
-          <p class="text-xs text-slate-400">Microservicio de Identidad, Seguridad y Cumplimiento (`auth-service`)</p>
-        </div>
+  <div class="flex min-h-screen bg-[#0D1B2E] text-[#EEF2FF]">
+    <!-- Sidebar Navigation -->
+    <aside
+      class="w-64 flex flex-col shrink-0 border-r z-40 hidden md:flex min-h-screen"
+      style="background: #0A1628; border-color: #1E3355;"
+    >
+      <!-- Top Logo -->
+      <div class="px-5 py-5 border-b flex items-center justify-between" style="border-color: #1E3355;">
+        <NuxtLink to="/">
+          <Logo size="sm" />
+        </NuxtLink>
       </div>
 
-      <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-        <div class="text-right hidden sm:block">
-          <div class="text-xs font-semibold text-slate-200">{{ user?.email }}</div>
-          <div class="text-[10px] text-slate-400">Sesión JWT Activa</div>
+      <!-- Navigation Links -->
+      <nav class="flex-1 px-3 py-4 space-y-1">
+        <!-- Dashboard Item (Active) -->
+        <div
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm"
+          style="background: linear-gradient(135deg, #1D3461 0%, #1A2E4A 100%); color: #60A5FA;"
+        >
+          <LayoutDashboard :size="16" class="text-blue-400" />
+          <span class="flex-1">Dashboard</span>
+        </div>
+
+        <!-- Role-based items (Preview of platform features) -->
+        <template v-if="isStudent">
+          <div
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white/5 cursor-pointer opacity-75 hover:opacity-100"
+            style="color: #6B8CAE;"
+          >
+            <Search :size="16" />
+            <span class="flex-1">Explorar</span>
+          </div>
+
+          <div
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white/5 cursor-pointer opacity-75 hover:opacity-100"
+            style="color: #6B8CAE;"
+          >
+            <FileText :size="16" />
+            <span class="flex-1">Mis Solicitudes</span>
+          </div>
+        </template>
+        <template v-else>
+          <div
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white/5 cursor-pointer opacity-75 hover:opacity-100"
+            style="color: #6B8CAE;"
+          >
+            <Briefcase :size="16" />
+            <span class="flex-1">Problemáticas</span>
+          </div>
+
+          <div
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white/5 cursor-pointer opacity-75 hover:opacity-100"
+            style="color: #6B8CAE;"
+          >
+            <Users :size="16" />
+            <span class="flex-1">Solicitudes</span>
+          </div>
+        </template>
+
+        <div
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white/5 cursor-pointer opacity-75 hover:opacity-100"
+          style="color: #6B8CAE;"
+        >
+          <Bell :size="16" />
+          <span class="flex-1">Notificaciones</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white">2</span>
+        </div>
+
+        <div
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white/5 cursor-pointer opacity-75 hover:opacity-100"
+          style="color: #6B8CAE;"
+        >
+          <User :size="16" />
+          <span class="flex-1">Mi Perfil</span>
+        </div>
+      </nav>
+
+      <!-- User Profile Card & Logout -->
+      <div class="px-3 pb-5 space-y-3 border-t pt-4" style="border-color: #1E3355;">
+        <div
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl border"
+          style="background: #122035; border-color: #1E3355;"
+        >
+          <div
+            class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm"
+            style="background: linear-gradient(135deg, #3B82F6, #06B6D4); color: #fff;"
+          >
+            {{ userInitials }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-semibold text-white truncate">{{ userDisplayName }}</p>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400">
+                {{ user?.role || 'ESTUDIANTE' }}
+              </span>
+            </div>
+          </div>
         </div>
 
         <button
           @click="handleLogout"
-          class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-800/80 text-slate-300 hover:text-red-400 text-xs font-medium transition-all duration-200 flex items-center gap-2"
-          title="Cerrar sesión y destruir tokens locales"
+          class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-red-500/10 hover:text-red-400 cursor-pointer"
+          style="color: #6B8CAE;"
         >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span>Cerrar Sesión</span>
+          <LogOut :size="14" />
+          <span>Cerrar sesión</span>
         </button>
       </div>
-    </header>
+    </aside>
 
     <!-- Main Content Area -->
-    <div class="space-y-6">
-      <!-- Welcome Hero Banner -->
-      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-ufps-950/40 border border-slate-800 p-6 sm:p-8 shadow-2xl">
-        <div class="relative z-10 max-w-2xl space-y-3">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 text-xs font-medium">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Autenticación Validada con SimpleJWT (RF02 / RF03)
+    <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+      <!-- Top Navigation Bar -->
+      <header
+        class="sticky top-0 z-30 flex items-center justify-between px-6 lg:px-8 h-16 border-b"
+        style="background: rgba(13, 27, 46, 0.95); backdrop-filter: blur(8px); border-color: #1E3355;"
+      >
+        <div class="flex items-center gap-2 text-sm" style="color: #6B8CAE;">
+          <div class="md:hidden flex items-center mr-2">
+            <Logo size="sm" :show-text="false" />
           </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Bienvenido al Portal,
-            <span class="text-ufps-400 block sm:inline mt-1 sm:mt-0 font-normal text-lg sm:text-2xl">{{ user?.email }}</span>
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-            Ha ingresado satisfactoriamente al corte vertical del microservicio <strong class="text-slate-200">auth-service</strong>. Este panel demuestra la resolución del perfil de usuario a través del endpoint protegido <code class="text-ufps-300 bg-slate-800/60 px-1.5 py-0.5 rounded text-xs">GET /api/v1/auth/me/</code>.
-          </p>
-        </div>
-      </div>
-
-      <!-- User Profile & Compliance Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Card 1: Identity & Role -->
-        <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Identidad y Rol</span>
-            <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-          </div>
-
-          <div class="space-y-3">
-            <div>
-              <div class="text-[11px] text-slate-400">ID de Usuario (ORM):</div>
-              <div class="text-lg font-mono font-bold text-white">#{{ user?.id ?? '...' }}</div>
-            </div>
-
-            <div>
-              <div class="text-[11px] text-slate-400">Rol Institucional (RBAC):</div>
-              <div class="mt-1">
-                <span
-                  v-if="user?.role === 'ESTUDIANTE'"
-                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-blue-950/80 text-blue-300 border border-blue-700/60 shadow-sm"
-                >
-                  <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-                  ESTUDIANTE (6.° - 10.° Semestre)
-                </span>
-                <span
-                  v-else-if="user?.role === 'EMPRESA'"
-                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 shadow-sm"
-                >
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  EMPRESA (Aliado Productivo)
-                </span>
-                <span
-                  v-else
-                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-purple-950/80 text-purple-300 border border-purple-700/60 shadow-sm"
-                >
-                  <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-                  {{ user?.role ?? 'ADMIN' }}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <div class="text-[11px] text-slate-400">Estado de Cuenta:</div>
-              <div class="text-xs font-medium text-emerald-400 flex items-center gap-1.5 mt-0.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                Activo / Credenciales Válidas
-              </div>
-            </div>
-          </div>
+          <span class="font-medium text-slate-300">
+            {{ isStudent ? 'Estudiante' : 'Empresa' }}
+          </span>
+          <ChevronRight :size="14" />
+          <span class="text-white font-semibold">Dashboard</span>
         </div>
 
-        <!-- Card 2: Legal Compliance (Ley 1581 de 2012) -->
-        <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Cumplimiento Normativo</span>
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
+        <div class="flex items-center gap-4">
+          <!-- Notification Bell -->
+          <div class="relative p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer" style="color: #6B8CAE;">
+            <Bell :size="18" />
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500" />
           </div>
 
-          <div class="space-y-3">
-            <div>
-              <div class="text-[11px] text-slate-400">Habeas Data (Ley 1581 de 2012):</div>
-              <div class="mt-1">
-                <span
-                  v-if="user?.habeas_data_consent"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-700/60"
-                >
-                  <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Consentimiento Explícito Otorgado
-                </span>
-                <span
-                  v-else
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-red-950 text-red-300 border border-red-700"
-                >
-                  Sin Consentimiento
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <div class="text-[11px] text-slate-400">Registro Temporal de Auditoría:</div>
-              <div class="text-xs font-mono text-slate-200 mt-0.5">
-                {{ formatDate(user?.consent_date) }}
-              </div>
-            </div>
-
-            <div class="pt-2 text-[11px] text-slate-400 border-t border-slate-800">
-              Garantiza la trazabilidad exigida por la Superintendencia de Industria y Comercio (SIC) de Colombia.
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 3: Microservice Context & Metadata -->
-        <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Arquitectura del Piloto</span>
-            <div class="w-8 h-8 rounded-lg bg-ufps-500/10 text-ufps-400 flex items-center justify-center">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-          </div>
-
-          <div class="space-y-2 text-xs">
-            <div class="flex items-center justify-between py-1 border-b border-slate-800">
-              <span class="text-slate-400">Patrón:</span>
-              <span class="font-semibold text-slate-200">Database-per-Service (DDD)</span>
-            </div>
-            <div class="flex items-center justify-between py-1 border-b border-slate-800">
-              <span class="text-slate-400">Backend:</span>
-              <span class="font-mono text-slate-200">Django 5 + DRF SimpleJWT</span>
-            </div>
-            <div class="flex items-center justify-between py-1 border-b border-slate-800">
-              <span class="text-slate-400">Frontend:</span>
-              <span class="font-mono text-slate-200">Nuxt 4 + Vue 3 + pnpm</span>
-            </div>
-            <div class="flex items-center justify-between py-1">
-              <span class="text-slate-400">Infraestructura:</span>
-              <span class="font-semibold text-ufps-400">GCP Compute Engine (Terraform)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Raw API Data Inspector for Evaluator Demonstration -->
-      <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
-            Respuesta JSON en Vivo: <span class="text-xs font-mono text-slate-400">GET /api/v1/auth/me/</span>
-          </h3>
+          <!-- Mobile Logout Button -->
           <button
-            @click="fetchMe"
-            :disabled="isRefreshing"
-            class="text-xs px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1.5 transition-colors"
+            @click="handleLogout"
+            class="md:hidden p-2 rounded-lg text-slate-400 hover:text-red-400"
+            title="Cerrar sesión"
           >
-            <svg :class="['w-3.5 h-3.5', isRefreshing ? 'animate-spin' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Refrescar /me/
+            <LogOut :size="18" />
           </button>
         </div>
-        <pre class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-emerald-400/90 overflow-x-auto border border-slate-800/80">{{ JSON.stringify(user, null, 2) }}</pre>
-      </div>
+      </header>
+
+      <!-- Dashboard Body -->
+      <main class="flex-1 p-6 lg:p-8 space-y-8 max-w-7xl w-full mx-auto">
+        <!-- Welcome Hero -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1.5" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+              {{ isStudent ? `¡Bienvenido, ${userDisplayName}! 👋` : `Panel Empresarial: ${userDisplayName}` }}
+            </h1>
+            <p class="text-xs sm:text-sm" style="color: #7B9CBF;">
+              <template v-if="isStudent">
+                Ingeniería de Sistemas · 8° semestre · Universidad Francisco de Paula Santander (UFPS)
+              </template>
+              <template v-else>
+                Organización vinculada a la red de colaboración académica · Cúcuta, Norte de Santander
+              </template>
+            </p>
+          </div>
+
+          <div>
+            <button
+              v-if="isStudent"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 shadow-glow-blue cursor-pointer"
+              style="background: linear-gradient(135deg, #3B82F6, #2563EB);"
+            >
+              <Search :size="15" />
+              <span>Explorar problemáticas</span>
+            </button>
+            <button
+              v-else
+              class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 shadow-glow-blue cursor-pointer"
+              style="background: linear-gradient(135deg, #3B82F6, #2563EB);"
+            >
+              <Plus :size="15" />
+              <span>Nueva problemática</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Stats Cards Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div
+            v-for="(s, i) in (isStudent ? studentStats : companyStats)"
+            :key="i"
+            class="rounded-xl p-5 border transition-all hover:border-blue-500/40"
+            style="background: #122035; border-color: #1E3355;"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-lg flex items-center justify-center"
+                :style="{ background: s.color + '18' }"
+              >
+                <component :is="s.Icon" :size="17" :style="{ color: s.color }" />
+              </div>
+            </div>
+            <p class="text-2xl font-bold text-white">{{ s.value }}</p>
+            <p class="text-xs mt-1" style="color: #7B9CBF;">{{ s.label }}</p>
+          </div>
+        </div>
+
+        <!-- Main Content 5-Column Grid -->
+        <div class="grid lg:grid-cols-5 gap-6">
+          <!-- Left Column (3 cols) -->
+          <div class="lg:col-span-3 space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                <Sparkles :size="16" style="color: #06B6D4;" />
+                <span>{{ isStudent ? 'Problemáticas recomendadas' : 'Mis problemáticas publicadas' }}</span>
+              </h2>
+              <span class="text-xs font-medium cursor-pointer hover:underline" style="color: #3B82F6;">
+                Ver todas →
+              </span>
+            </div>
+
+            <!-- Student View: Problems List -->
+            <div v-if="isStudent" class="space-y-3">
+              <div
+                v-for="p in studentFeaturedProblems"
+                :key="p.id"
+                class="rounded-xl p-5 border transition-all duration-200 hover:border-blue-500/40"
+                style="background: #122035; border-color: #1E3355;"
+              >
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <h3 class="font-semibold text-sm text-white leading-snug">{{ p.title }}</h3>
+                  <StatusBadge :status="p.status" />
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center bg-blue-500/20 text-blue-400">
+                    {{ p.company.charAt(0) }}
+                  </div>
+                  <span class="text-xs" style="color: #7B9CBF;">{{ p.company }} · {{ p.city }}</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <span
+                    v-for="tag in p.tags"
+                    :key="tag"
+                    class="text-[11px] px-2 py-0.5 rounded"
+                    style="background: #1A2E4A; color: #60A5FA;"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Company View: My Problems -->
+            <div v-else class="space-y-3">
+              <div
+                v-for="p in companyProblemsList"
+                :key="p.id"
+                class="rounded-xl p-5 border transition-all duration-200 hover:border-blue-500/40"
+                style="background: #122035; border-color: #1E3355;"
+              >
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <h3 class="font-semibold text-sm text-white leading-snug">{{ p.title }}</h3>
+                  <StatusBadge :status="p.status" />
+                </div>
+                <p class="text-xs mb-3 line-clamp-2" style="color: #7B9CBF;">{{ p.desc }}</p>
+                <div class="flex items-center gap-3 text-xs" style="color: #3B82F6;">
+                  <span class="font-medium cursor-pointer hover:underline flex items-center gap-1">
+                    Ver solicitudes ({{ p.requestsCount }}) <ArrowRight :size="12" />
+                  </span>
+                  <span style="color: #1E3355;">·</span>
+                  <span class="cursor-pointer hover:underline" style="color: #6B8CAE;">Editar</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column (2 cols) -->
+          <div class="lg:col-span-2 space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-semibold text-white">
+                {{ isStudent ? 'Mis solicitudes recientes' : 'Solicitudes recibidas' }}
+              </h2>
+              <span class="text-xs font-medium cursor-pointer hover:underline" style="color: #3B82F6;">
+                Ver todas →
+              </span>
+            </div>
+
+            <div class="space-y-3">
+              <div
+                v-for="r in recentRequests"
+                :key="r.id"
+                class="rounded-xl p-4 border"
+                style="background: #122035; border-color: #1E3355;"
+              >
+                <div class="flex items-start justify-between gap-2 mb-1.5">
+                  <h4 class="text-xs font-semibold text-white leading-snug">{{ r.problem }}</h4>
+                  <StatusBadge :status="r.status" />
+                </div>
+                <p class="text-[11px]" style="color: #7B9CBF;">
+                  {{ isStudent ? r.company : r.applicant }}
+                </p>
+                <div class="flex items-center justify-between mt-2 pt-2 border-t text-[10px]" style="border-color: #1E3355; color: #4A6B8A;">
+                  <span>Enviada: {{ r.date }}</span>
+                  <span class="text-blue-400 hover:underline cursor-pointer">Ver detalle</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Academic & Architecture Compliance Card (Validating auth-service) -->
+        <div
+          class="rounded-2xl p-6 border relative overflow-hidden"
+          style="background: #0F1F36; border-color: #1E3355;"
+        >
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                <ShieldCheck :size="22" />
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Microservicio Piloto Fundacional: <code class="text-blue-400">auth-service</code></span>
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                </h3>
+                <p class="text-xs mt-0.5" style="color: #7B9CBF;">
+                  Sesión SimpleJWT activa &bull; Resuelto desde <code class="text-xs text-slate-300">GET /api/v1/auth/me/</code> &bull; UFPS Cúcuta
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 text-xs">
+              <div class="px-3 py-1.5 rounded-lg border flex items-center gap-2" style="background: #0D1B2E; border-color: #253D5F;">
+                <span class="text-slate-400">Ley 1581 (Habeas Data):</span>
+                <span :class="user?.habeas_data_consent ? 'text-emerald-400 font-semibold' : 'text-red-400'">
+                  {{ user?.habeas_data_consent ? 'Autorizado' : 'Pendiente' }}
+                </span>
+              </div>
+              <div class="px-3 py-1.5 rounded-lg border flex items-center gap-2" style="background: #0D1B2E; border-color: #253D5F;">
+                <span class="text-slate-400">Email:</span>
+                <span class="text-white font-mono">{{ user?.email }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   </div>
 </template>

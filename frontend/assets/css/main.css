@@ -4,26 +4,46 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans antialiased min-h-screen selection:bg-ufps-600 selection:text-white;
+    background-color: #080F1E;
+    color: #EEF2FF;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: #3B82F6;
+    color: #ffffff;
   }
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(17, 24, 39, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080F1E;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E3355;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #253D5F;
 }
 
-.glass-input {
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* Inputs & Form Elements */
+.nexus-input {
+  background-color: #0D1B2E;
+  border: 1px solid #253D5F;
+  color: #EEF2FF;
+  transition: all 0.2s ease;
 }
 
-.glass-input:focus {
-  border-color: #aa1916;
-  box-shadow: 0 0 0 3px rgba(170, 25, 22, 0.2);
+.nexus-input:focus {
+  border-color: #3B82F6;
   outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }

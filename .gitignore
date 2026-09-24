@@ -44,3 +44,6 @@ terraform.rc
 .DS_Store
 *.swp
 *.swo
+
+# Prototipo y Mockups locales (referencia de diseño)
+.Mockups y Prototipo - Conecta Nexus/

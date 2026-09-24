@@ -1,14 +1,58 @@
 <script setup lang="ts">
+import { 
+  GraduationCap, 
+  Building2, 
+  ArrowRight, 
+  ArrowLeft, 
+  Check, 
+  AlertCircle, 
+  CheckCircle2,
+  FileText,
+  X
+} from 'lucide-vue-next'
+
 const { register, isLoading, errorMessage, initAuth, isAuthenticated } = useAuth()
 const router = useRouter()
 
+type RoleType = 'student' | 'company'
+
+const role = ref<RoleType | null>('student')
+const step = ref<1 | 2>(1)
+
 const form = ref({
+  firstName: '',
+  lastName: '',
+  companyName: '',
+  city: 'Cúcuta',
   email: '',
+  career: 'Ingeniería de Sistemas',
+  semester: '8',
+  sector: 'Tecnología de Software',
   password: '',
-  confirmPassword: '',
-  role: 'ESTUDIANTE' as 'ESTUDIANTE' | 'EMPRESA',
   habeas_data_consent: false,
 })
+
+const careers = [
+  'Ingeniería de Sistemas',
+  'Ingeniería Industrial',
+  'Ingeniería Electrónica',
+  'Ingeniería Civil',
+  'Administración de Empresas',
+  'Contaduría Pública',
+  'Otra',
+]
+
+const sectors = [
+  'Tecnología de Software',
+  'Manufactura Industrial',
+  'Ciencia de Datos',
+  'Logística y Distribución',
+  'Salud',
+  'Educación',
+  'Finanzas',
+  'Retail',
+  'Otro',
+]
 
 const clientError = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
@@ -21,13 +65,22 @@ onMounted(async () => {
   }
 })
 
+const handleSelectRole = (r: RoleType) => {
+  role.value = r
+}
+
+const handleContinueToStep2 = () => {
+  if (role.value) {
+    step.value = 2
+  }
+}
+
 const handleSubmit = async () => {
   clientError.value = null
   successMessage.value = null
 
-  // Client validations
   if (!form.value.email.trim()) {
-    clientError.value = 'Por favor ingrese su correo electrónico institucional o corporativo.'
+    clientError.value = 'Por favor ingresa tu correo electrónico.'
     return
   }
 
@@ -42,204 +95,405 @@ const handleSubmit = async () => {
     return
   }
 
-  if (form.value.password !== form.value.confirmPassword) {
-    clientError.value = 'Las contraseñas no coinciden. Por favor verifíquelas.'
+  // Legal requirement Ley 1581 de 2012
+  if (!form.value.habeas_data_consent) {
+    clientError.value =
+      'Debes autorizar el tratamiento de datos personales conforme a la Ley 1581 de 2012 (Habeas Data) para continuar.'
     return
   }
 
-  // Habeas Data validation - Acceptance Criterion 1
-  if (!form.value.habeas_data_consent) {
-    clientError.value =
-      'Debe autorizar de manera explícita el tratamiento de sus datos personales conforme a la Ley 1581 de 2012 (Habeas Data) para poder registrarse en Conecta Nexus.'
-    return
-  }
+  const roleValue = role.value === 'company' ? 'EMPRESA' : 'ESTUDIANTE'
 
   const result = await register({
     email: form.value.email.trim(),
     password: form.value.password,
-    role: form.value.role,
+    role: roleValue,
     habeas_data_consent: form.value.habeas_data_consent,
   })
 
   if (result.success) {
-    successMessage.value = '¡Registro exitoso! Redirigiendo a la pantalla de inicio de sesión...'
+    successMessage.value = '¡Cuenta creada exitosamente! Redirigiendo al inicio de sesión...'
     setTimeout(() => {
       router.push('/login')
-    }, 1800)
+    }, 1500)
   }
 }
 </script>
 
 <template>
-  <div class="flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8">
-    <div class="w-full max-w-lg space-y-6">
+  <div class="min-h-screen flex items-center justify-center px-4 py-12" style="background: #080F1E;">
+    <div class="w-full max-w-lg">
       <!-- Header -->
-      <div class="text-center space-y-2">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-ufps-600 to-ufps-800 text-white font-black text-2xl shadow-glow-red ring-1 ring-white/20">
-          CN
+      <div class="text-center mb-8">
+        <div class="flex justify-center mb-5">
+          <NuxtLink to="/">
+            <Logo size="lg" />
+          </NuxtLink>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-          Crear Cuenta en <span class="text-ufps-500">Conecta Nexus</span>
+        <h1 class="text-2xl font-bold text-white mb-1" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+          Crear cuenta
         </h1>
-        <p class="text-xs sm:text-sm text-slate-400">
-          Plataforma Institucional de Vinculación Universidad - Empresa &bull; UFPS
+        <p class="text-sm" style="color: #6B8CAE;">
+          Únete a la plataforma de vinculación académica
         </p>
       </div>
 
-      <!-- Card container -->
-      <div class="glass-panel p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
-        <div class="border-b border-slate-800 pb-3">
-          <h2 class="text-lg font-semibold text-slate-200">Autorregistro por Rol</h2>
-          <p class="text-xs text-slate-400">Seleccione su tipo de vinculación y complete los datos requeridos.</p>
+      <!-- Progress Indicator -->
+      <div class="flex items-center gap-2 mb-8 justify-center">
+        <div class="flex items-center gap-2">
+          <div
+            class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+            :style="step >= 1 ? { background: '#3B82F6', color: '#fff' } : { background: '#1A2E4A', color: '#4A6B8A' }"
+          >
+            <Check v-if="step > 1" :size="13" />
+            <span v-else>1</span>
+          </div>
+          <div
+            class="w-20 h-px transition-all"
+            :style="{ background: step > 1 ? '#3B82F6' : '#1E3355' }"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <div
+            class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+            :style="step >= 2 ? { background: '#3B82F6', color: '#fff' } : { background: '#1A2E4A', color: '#4A6B8A' }"
+          >
+            <span>2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div
+        class="rounded-2xl p-8 border shadow-glow-card"
+        style="background: #0F1F36; border-color: #1E3355;"
+      >
+        <!-- Alerts -->
+        <div
+          v-if="successMessage"
+          class="mb-6 p-4 rounded-xl border flex items-center gap-3 text-xs sm:text-sm animate-fade-in"
+          style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #6EE7B7;"
+        >
+          <CheckCircle2 :size="18" class="text-emerald-400 shrink-0" />
+          <span>{{ successMessage }}</span>
         </div>
 
-        <!-- Success Alert -->
-        <div v-if="successMessage" class="p-3.5 rounded-xl bg-emerald-950/70 border border-emerald-700 text-emerald-200 text-xs sm:text-sm flex items-center gap-2.5">
-          <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <div class="font-medium">{{ successMessage }}</div>
-        </div>
-
-        <!-- Error Alert -->
-        <div v-if="clientError || errorMessage" class="p-3.5 rounded-xl bg-red-950/70 border border-red-800 text-red-200 text-xs sm:text-sm flex items-start gap-2.5">
-          <svg class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+        <div
+          v-if="clientError || errorMessage"
+          class="mb-6 p-3.5 rounded-xl border flex items-start gap-2.5 text-xs sm:text-sm animate-fade-in"
+          style="background: rgba(220, 38, 38, 0.1); border-color: rgba(220, 38, 38, 0.3); color: #FCA5A5;"
+        >
+          <AlertCircle :size="18" class="text-red-400 shrink-0 mt-0.5" />
           <div class="flex-grow">
             {{ clientError || errorMessage }}
           </div>
         </div>
 
-        <!-- Registration Form -->
-        <form @submit.prevent="handleSubmit" class="space-y-4" novalidate>
-          <!-- Role selector cards -->
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-2">
-              Tipo de Actor en el Ecosistema
-            </label>
-            <div class="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                @click="form.role = 'ESTUDIANTE'"
-                :class="[
-                  'p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col gap-1',
-                  form.role === 'ESTUDIANTE'
-                    ? 'border-ufps-600 bg-ufps-950/40 ring-1 ring-ufps-600/50 shadow-glow-red'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
-                ]"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-semibold text-white">Estudiante</span>
-                  <span v-if="form.role === 'ESTUDIANTE'" class="w-2 h-2 rounded-full bg-ufps-500"></span>
-                </div>
-                <span class="text-[11px] text-slate-400">Semestres 6.° a 10.° UFPS</span>
-              </button>
+        <!-- Step 1: Role Selection -->
+        <div v-if="step === 1">
+          <h2 class="text-lg font-semibold text-white mb-1">¿Cuál es tu rol?</h2>
+          <p class="text-sm mb-6" style="color: #6B8CAE;">
+            Selecciona el tipo de cuenta que deseas crear.
+          </p>
 
-              <button
-                type="button"
-                @click="form.role = 'EMPRESA'"
-                :class="[
-                  'p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col gap-1',
-                  form.role === 'EMPRESA'
-                    ? 'border-emerald-600 bg-emerald-950/40 ring-1 ring-emerald-600/50 shadow-glow-blue'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
-                ]"
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <!-- Student Option -->
+            <button
+              type="button"
+              @click="handleSelectRole('student')"
+              class="relative p-6 rounded-xl text-left transition-all border cursor-pointer group"
+              :style="role === 'student' ? { background: '#1A2E4A', borderColor: '#3B82F6' } : { background: '#0D1B2E', borderColor: '#1E3355' }"
+            >
+              <div
+                v-if="role === 'student'"
+                class="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
+                style="background: #3B82F6;"
               >
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-semibold text-white">Empresa</span>
-                  <span v-if="form.role === 'EMPRESA'" class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                </div>
-                <span class="text-[11px] text-slate-400">Entidad o aliado productivo</span>
-              </button>
+                <Check :size="12" class="text-white" />
+              </div>
+              <div
+                class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                style="background: #1A2E4A;"
+              >
+                <GraduationCap :size="20" style="color: #3B82F6;" />
+              </div>
+              <p class="font-semibold text-white text-sm">Estudiante</p>
+              <p class="text-xs mt-1" style="color: #6B8CAE;">
+                Busco problemáticas empresariales
+              </p>
+            </button>
+
+            <!-- Company Option -->
+            <button
+              type="button"
+              @click="handleSelectRole('company')"
+              class="relative p-6 rounded-xl text-left transition-all border cursor-pointer group"
+              :style="role === 'company' ? { background: '#1A2E4A', borderColor: '#8B5CF6' } : { background: '#0D1B2E', borderColor: '#1E3355' }"
+            >
+              <div
+                v-if="role === 'company'"
+                class="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
+                style="background: #8B5CF6;"
+              >
+                <Check :size="12" class="text-white" />
+              </div>
+              <div
+                class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                style="background: #1A2E4A;"
+              >
+                <Building2 :size="20" style="color: #8B5CF6;" />
+              </div>
+              <p class="font-semibold text-white text-sm">Empresa</p>
+              <p class="text-xs mt-1" style="color: #6B8CAE;">
+                Publico problemáticas y busco talento
+              </p>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            @click="handleContinueToStep2"
+            :disabled="!role"
+            class="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-white transition-all disabled:opacity-40 cursor-pointer shadow-glow-blue"
+            style="background: linear-gradient(135deg, #3B82F6, #2563EB);"
+          >
+            <span>Continuar</span>
+            <ArrowRight :size="16" />
+          </button>
+        </div>
+
+        <!-- Step 2: Information Form -->
+        <form v-else @submit.prevent="handleSubmit" class="space-y-4">
+          <div class="flex items-center gap-2 mb-4">
+            <button
+              type="button"
+              @click="step = 1"
+              class="p-1 rounded hover:bg-white/5 transition-colors cursor-pointer"
+              style="color: #6B8CAE;"
+            >
+              <ArrowLeft :size="16" />
+            </button>
+            <h2 class="text-lg font-semibold text-white">
+              {{ role === 'student' ? 'Perfil académico' : 'Información empresarial' }}
+            </h2>
+          </div>
+
+          <!-- Name fields -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium mb-1.5" style="color: #7B9CBF;">
+                {{ role === 'student' ? 'Nombre' : 'Razón social' }}
+              </label>
+              <input
+                v-if="role === 'student'"
+                v-model="form.firstName"
+                type="text"
+                placeholder="Andrés"
+                class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
+              />
+              <input
+                v-else
+                v-model="form.companyName"
+                type="text"
+                placeholder="Industrias S.A.S."
+                class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" style="color: #7B9CBF;">
+                {{ role === 'student' ? 'Apellido' : 'Ciudad' }}
+              </label>
+              <input
+                v-if="role === 'student'"
+                v-model="form.lastName"
+                type="text"
+                placeholder="Quintero"
+                class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
+              />
+              <input
+                v-else
+                v-model="form.city"
+                type="text"
+                placeholder="Cúcuta"
+                class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
+              />
             </div>
           </div>
 
           <!-- Email -->
           <div>
-            <label for="reg-email" class="block text-xs font-medium text-slate-300 mb-1.5">
-              Correo Electrónico
+            <label class="block text-xs font-medium mb-1.5" style="color: #7B9CBF;">
+              Correo electrónico
             </label>
             <input
-              id="reg-email"
               v-model="form.email"
               type="email"
-              autocomplete="email"
               required
-              :placeholder="form.role === 'ESTUDIANTE' ? 'nombre.codigo@ufps.edu.co' : 'contacto@empresa.com'"
-              class="glass-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500"
+              autocomplete="email"
+              :placeholder="role === 'student' ? 'nombre@ufps.edu.co' : 'contacto@empresa.com'"
+              class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+              style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
             />
           </div>
 
-          <!-- Passwords -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label for="reg-password" class="block text-xs font-medium text-slate-300 mb-1.5">
-                Contraseña
-              </label>
-              <input
-                id="reg-password"
-                v-model="form.password"
-                type="password"
-                autocomplete="new-password"
-                required
-                placeholder="Mínimo 6 carácteres"
-                class="glass-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500"
-              />
-            </div>
-            <div>
-              <label for="reg-confirm-password" class="block text-xs font-medium text-slate-300 mb-1.5">
-                Confirmar Contraseña
-              </label>
-              <input
-                id="reg-confirm-password"
-                v-model="form.confirmPassword"
-                type="password"
-                autocomplete="new-password"
-                required
-                placeholder="Repetir contraseña"
-                class="glass-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500"
-              />
-            </div>
+          <!-- Career / Sector -->
+          <div>
+            <label class="block text-xs font-medium mb-1.5" style="color: #7B9CBF;">
+              {{ role === 'student' ? 'Carrera' : 'Sector empresarial' }}
+            </label>
+            <select
+              v-if="role === 'student'"
+              v-model="form.career"
+              class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+              style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
+            >
+              <option v-for="c in careers" :key="c" :value="c">{{ c }}</option>
+            </select>
+            <select
+              v-else
+              v-model="form.sector"
+              class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+              style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
+            >
+              <option v-for="s in sectors" :key="s" :value="s">{{ s }}</option>
+            </select>
           </div>
 
-          <!-- Habeas Data / Legal Consent Checkbox (Ley 1581 de 2012) -->
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 mt-4">
+          <!-- Semester (only student) -->
+          <div v-if="role === 'student'">
+            <label class="block text-xs font-medium mb-1.5" style="color: #7B9CBF;">
+              Semestre actual
+            </label>
+            <select
+              v-model="form.semester"
+              class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+              style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
+            >
+              <option v-for="s in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" :key="s" :value="s.toString()">
+                {{ s }}° semestre
+              </option>
+            </select>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-xs font-medium mb-1.5" style="color: #7B9CBF;">
+              Contraseña
+            </label>
+            <input
+              v-model="form.password"
+              type="password"
+              required
+              autocomplete="new-password"
+              placeholder="Mínimo 6 caracteres"
+              class="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+              style="background: #0D1B2E; border: 1px solid #253D5F; color: #EEF2FF;"
+            />
+          </div>
+
+          <!-- Mandatory Habeas Data (Ley 1581 de 2012) -->
+          <div class="p-3.5 rounded-xl border space-y-2 mt-4" style="background: #0D1B2E; border-color: #1E3355;">
             <div class="flex items-start gap-3">
               <input
-                id="habeas-data-checkbox"
+                id="habeas-consent"
                 v-model="form.habeas_data_consent"
                 type="checkbox"
-                class="mt-1 h-4 w-4 rounded border-slate-700 bg-slate-950 text-ufps-600 focus:ring-ufps-500 focus:ring-offset-slate-900 cursor-pointer"
+                required
+                class="mt-1 h-4 w-4 rounded border-slate-700 text-blue-600 focus:ring-blue-500 bg-slate-900 cursor-pointer"
               />
-              <label for="habeas-data-checkbox" class="text-xs text-slate-300 leading-relaxed cursor-pointer select-none">
-                <strong class="text-white font-semibold">Consentimiento Obligatorio:</strong>
-                Autorizo de manera previa, expresa e informada a la Universidad Francisco de Paula Santander (UFPS) para el tratamiento de mis datos personales según la
-                <span class="text-ufps-400 font-semibold underline underline-offset-2">Ley 1581 de 2012 (Habeas Data)</span>
-                y la política de privacidad institucional para fines académicos y de vinculación laboral.
+              <label for="habeas-consent" class="text-xs leading-relaxed cursor-pointer select-none" style="color: #94A3B8;">
+                Autorizo de manera previa, expresa e informada el tratamiento de mis datos personales de acuerdo con la 
+                <span class="font-semibold text-white">Ley 1581 de 2012 (Habeas Data)</span> y las políticas de la plataforma.
               </label>
+            </div>
+            <div class="pl-7">
+              <button
+                type="button"
+                @click="showLegalModal = true"
+                class="text-[11px] underline flex items-center gap-1 cursor-pointer transition-colors"
+                style="color: #60A5FA;"
+              >
+                <FileText :size="12" />
+                <span>Ver Política y Términos Legales</span>
+              </button>
             </div>
           </div>
 
-          <!-- Submit button -->
+          <!-- Submit Button -->
           <button
             type="submit"
-            :disabled="isLoading || !!successMessage"
-            class="w-full py-3 px-4 rounded-xl bg-ufps-600 hover:bg-ufps-700 active:bg-ufps-800 text-white font-medium text-sm transition-all duration-200 shadow-glow-red hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-3"
+            :disabled="isLoading"
+            class="w-full py-3 rounded-lg font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 shadow-glow-blue cursor-pointer"
+            style="background: linear-gradient(135deg, #3B82F6, #2563EB);"
           >
-            <svg v-if="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <svg v-if="isLoading" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
-            <span>{{ isLoading ? 'Procesando registro...' : 'Crear Cuenta en Conecta Nexus' }}</span>
+            <span>{{ isLoading ? 'Creando cuenta...' : 'Crear cuenta' }}</span>
           </button>
-        </form>
 
-        <div class="pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
-          ¿Ya tienes una cuenta creada?
-          <NuxtLink to="/login" class="text-ufps-400 hover:text-ufps-300 font-semibold underline underline-offset-4 ml-1">
-            Inicia sesión
-          </NuxtLink>
+          <p class="text-center text-xs mt-4" style="color: #4A6B8A;">
+            ¿Ya tienes cuenta?
+            <NuxtLink to="/login" class="font-medium hover:underline ml-1" style="color: #3B82F6;">
+              Inicia sesión
+            </NuxtLink>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Habeas Data -->
+    <div
+      v-if="showLegalModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      @click.self="showLegalModal = false"
+    >
+      <div
+        class="w-full max-w-lg rounded-2xl border p-6 shadow-2xl relative max-h-[85vh] flex flex-col"
+        style="background: #0F1F36; border-color: #253D5F;"
+      >
+        <div class="flex items-center justify-between pb-3 border-b" style="border-color: #1E3355;">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <FileText :size="18" class="text-blue-400" />
+            Consentimiento Habeas Data (Ley 1581 de 2012)
+          </h3>
+          <button
+            @click="showLegalModal = false"
+            class="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+          >
+            <X :size="18" />
+          </button>
+        </div>
+
+        <div class="overflow-y-auto py-4 space-y-3 text-xs leading-relaxed" style="color: #94A3B8;">
+          <p>
+            En cumplimiento de la <strong class="text-white">Ley Estatutaria 1581 de 2012</strong> y el Decreto Reglamentario 1377 de 2013 de la República de Colombia, la plataforma <strong class="text-white">Conecta Nexus</strong> informa al titular de la información que los datos recolectados serán tratados con estricta confidencialidad.
+          </p>
+          <p class="font-semibold text-slate-200">1. Finalidades del Tratamiento:</p>
+          <ul class="list-disc list-inside space-y-1 pl-2 text-slate-400">
+            <li>Autenticación y control de acceso seguro basado en roles (RBAC).</li>
+            <li>Vinculación y contacto entre la academia universitaria y el sector productivo.</li>
+            <li>Auditoría de consentimiento y trazabilidad de solicitudes de vinculación.</li>
+          </ul>
+          <p class="font-semibold text-slate-200">2. Derechos del Titular:</p>
+          <p>
+            Usted tiene derecho a conocer, actualizar, rectificar y solicitar la supresión de sus datos personales, así como revocar la autorización otorgada mediante los canales habilitados.
+          </p>
+        </div>
+
+        <div class="pt-3 border-t flex justify-end" style="border-color: #1E3355;">
+          <button
+            @click="showLegalModal = false; form.habeas_data_consent = true"
+            class="px-5 py-2 rounded-lg text-xs font-semibold text-white transition-colors"
+            style="background: #3B82F6;"
+          >
+            Entendido y Aceptar
+          </button>
         </div>
       </div>
     </div>
